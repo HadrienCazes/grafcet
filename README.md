@@ -4,7 +4,7 @@ Encadrant: Bùi Xuân Bình Minh
 
 Lieu: Au CFA-INSTA en formation d'Analyste Développeur en partenariat avec le master STL de Sorbonne Université (Anciennement UPMC/PARIS 6)
 
-Website: https://www-apr.lip6.fr/~buixuan/algavad2019.html
+Site Web de l'UE: https://www-apr.lip6.fr/~buixuan/algavad2019.html
 
 ## Résumé
 
