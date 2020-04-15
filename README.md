@@ -1,3 +1,7 @@
+# Algorithmique embarquée
+
+## Résumé
+
 Projet encadré par Binh Minh Bui Xuan dans le cadre de l'UE MIA au CFA-INSTA en formation d'Analyste Développeur en partenariat avec le master STL de Sorbonne Université (Anciennement UPMC/PARIS 6) où il faut coder un "cerveau"/Automate capable de réaliser les objectifs suivants:
 
 Stage 0: personaliser les robots, noms, avatars.
