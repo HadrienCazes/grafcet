@@ -54,7 +54,7 @@ public class Stage31Robot extends Brain {
       myX=0;
       myY=0;
     }
-
+    turnCpt = 0;
     //INIT
     state=(whoAmI==CHOSEN_ONE)?TURNLEFTTASK:SINK;
     isMoving=false;
