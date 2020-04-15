@@ -22,7 +22,7 @@ public class Stage31Robot extends Brain {
   private static final int NOT_CHOSEN_ONE = 0x5EC0;
   private static final int UNDEFINED = 0xBADC0DE0;
 
-  private static int turnCpt = 0;
+  private int turnCpt = 0;
   private static final int TURNLEFTTASK = 1;
   private static final int MOVETASK = 2;
   private static final int TURNRIGHTTASK = 3;
@@ -54,7 +54,6 @@ public class Stage31Robot extends Brain {
       myX=0;
       myY=0;
     }
-    turnCpt = 0;
     //INIT
     state=(whoAmI==CHOSEN_ONE)?TURNLEFTTASK:SINK;
     isMoving=false;
