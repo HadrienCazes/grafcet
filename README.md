@@ -1,6 +1,7 @@
 # Algorithmique embarquée
 
-Encadrant: Binh Minh Bui Xuan
+Encadrant: Bùi Xuân Bình Minh
+
 Lieu: Au CFA-INSTA en formation d'Analyste Développeur en partenariat avec le master STL de Sorbonne Université (Anciennement UPMC/PARIS 6)
 
 ## Résumé
