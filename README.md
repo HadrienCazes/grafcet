@@ -4,6 +4,10 @@ Encadrant: Bùi Xuân Bình Minh
 
 Lieu: Au CFA-INSTA en formation d'Analyste Développeur en partenariat avec le master STL de Sorbonne Université (Anciennement UPMC/PARIS 6)
 
+Site Web de l'UE: https://www-apr.lip6.fr/~buixuan/algavad2019.html
+
+Outils: Java JDK, Ant
+
 ## Résumé
 
 Projet où il faut coder un "cerveau"/Automate capable de réaliser les objectifs suivants:
