@@ -1,4 +1,4 @@
-# Algorithmique embarquée
+# [M1] Algorithmique embarquée
 
 Encadrant: Bùi Xuân Bình Minh
 
