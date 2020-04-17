@@ -40,6 +40,7 @@ public class HadrienSecondaryA extends Brain {
   private int state;
   private double oldAngle;
   private double myX,myY;
+  private double theta;
   private boolean isMoving,isMovingBack,fallbackOrder;
   private boolean freeze;
   private int whoAmI;
@@ -100,9 +101,11 @@ public class HadrienSecondaryA extends Brain {
         double enemyY=myY+o.getObjectDistance()*Math.sin(o.getObjectDirection());
         // indicates main bot to fire
         // broadcast(whoAmI+":"+TEAM+":"+FIRE+":"+enemyX+":"+enemyY+":"+OVER);
+        broadcast(whoAmI+":"+TEAM+":"+FALLBACK+":"+enemyX+":"+enemyY+":"+OVER);
         // indicates main bot to fallback as well
-        broadcast(whoAmI+":"+TEAM+":"+FALLBACK+":"+OVER);
-        sendLogMessage(nameWhoAmI+" detected "+ o.getObjectType() + " at " +enemyX+";"+ enemyY);
+        // broadcast(whoAmI+":"+TEAM+":"+FALLBACK+":"+OVER);
+        sendLogMessage(nameWhoAmI+" detected "+ o.getObjectType()+ " (" +(int)enemyX+","+(int)enemyY+")");
+        //sendLogMessage(nameWhoAmI+" detected "+ o.getObjectType() + " at " +enemyX+";"+ enemyY);
         state = DETECTED;
         fallbackOrder = true;
         // DEBUGGING PURPOSE

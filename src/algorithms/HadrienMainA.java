@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class HadrienMainA extends Brain {
   //---PARAMETERS---//
-  private static final double ANGLEPRECISION = 0.01;
+  private static final double ANGLEPRECISION = 0.015;
   private static final double FIREANGLEPRECISION = Math.PI/(double)6;
 
   private static final int ALPHA = 0x1EADDA;
@@ -49,6 +49,7 @@ public class HadrienMainA extends Brain {
   private boolean fireOrder;
   private boolean freeze;
   private boolean friendlyFire;
+  private double thetaAngle;
 
   //---CONSTRUCTORS---//
   public HadrienMainA() { super(); }
@@ -121,8 +122,8 @@ public class HadrienMainA extends Brain {
         double enemyX=myX+o.getObjectDistance()*Math.cos(o.getObjectDirection());
         double enemyY=myY+o.getObjectDistance()*Math.sin(o.getObjectDirection());
         // OLD BROADCAST for firing missiles
-        // broadcast(whoAmI+":"+TEAM+":"+FIRE+":"+enemyX+":"+enemyY+":"+OVER);
-        broadcast(whoAmI+":"+TEAM+":"+FALLBACK+":"+OVER);
+        broadcast(whoAmI+":"+TEAM+":"+FIRE+":"+enemyX+":"+enemyY+":"+OVER);
+        //broadcast(whoAmI+":"+TEAM+":"+FALLBACK+":"+OVER);
       }
       if (o.getObjectDistance()<=100 && !isRoughlySameDirection(o.getObjectDirection(),getHeading()) && o.getObjectType()!=IRadarResult.Types.BULLET) {
         freeze=true;
@@ -136,18 +137,22 @@ public class HadrienMainA extends Brain {
     if (freeze) return;
 
     //AUTOMATON
-    if (fallbackOrder){ state = TURNLEFTBACKTASK; }
-
-    if (state==TURNLEFTBACKTASK && !(isSameDirection(getHeading(),Parameters.EAST)) && fallbackOrder){
+    if (fallbackOrder){ 
+      thetaAngle = Math.atan((targetY-myY)/(double)(targetX-myX));
+      state = TURNLEFTBACKTASK;
+      fallbackOrder = false;
+      }
+    
+    if (state==TURNLEFTBACKTASK && !(isSameDirection(getHeading(),thetaAngle))){
       stepTurn(Parameters.Direction.LEFT);
       return;
     }
-    if (state==TURNLEFTBACKTASK && isSameDirection(getHeading(),Parameters.EAST) && fallbackOrder){
+    if (state==TURNLEFTBACKTASK && isSameDirection(getHeading(),thetaAngle)){
       state=MOVEBACKTASK;
       myMoveBack();
       return;
     }
-    if (state==MOVEBACKTASK && fallbackOrder){
+    if (state==MOVEBACKTASK){
       myMoveBack();
       return;
     }
@@ -239,7 +244,11 @@ public class HadrienMainA extends Brain {
       targetX=Double.parseDouble(message.split(":")[3]);
       targetY=Double.parseDouble(message.split(":")[4]);
     }
-    if (Integer.parseInt(message.split(":")[2])==FALLBACK) {fallbackOrder=true;}
+    if (Integer.parseInt(message.split(":")[2])==FALLBACK) {
+      fallbackOrder=true;
+      targetX=Double.parseDouble(message.split(":")[3]);
+      targetY=Double.parseDouble(message.split(":")[4]);
+      }
   }
   private void firePosition(double x, double y){
     if (myX<=x) fire(Math.atan((y-myY)/(double)(x-myX)));
