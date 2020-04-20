@@ -58,6 +58,9 @@ public class Hadrien1MainA extends Brain {
   private boolean friendlyFire;
   private boolean isMovingBack;
 
+  // TMP VARIABLES
+  private double angle;
+
   //---CONSTRUCTORS---//
   public Hadrien1MainA() { super(); }
 
@@ -145,6 +148,22 @@ public class Hadrien1MainA extends Brain {
     if (freeze) return;
 
     //AUTOMATON
+
+    if (state==TOWARDENEMY && (!isSameDirection(getHeading(),angle))){
+      stepTurn(Parameters.Direction.LEFT);
+      return;
+    }
+    if (state==TOWARDENEMY && (isSameDirection(getHeading(),angle))){
+      state = MOVEBACKTASK;
+      myMoveBack();
+      return;
+    }
+
+    if (state==MOVEBACKTASK){
+      myMoveBack();
+      return;
+    }
+
     if (fireOrder) countDown++;
     if (countDown>=100) fireOrder=false;
     if (fireOrder && fireRythm==0 && friendlyFire) {
@@ -233,6 +252,13 @@ public class Hadrien1MainA extends Brain {
       targetX=Double.parseDouble(message.split(":")[3]);
       targetY=Double.parseDouble(message.split(":")[4]);
     }
+    if (Integer.parseInt(message.split(":")[2])==FALLBACK) {
+      state = TOWARDENEMY;
+      fallbackOrder = true;
+      targetX=Double.parseDouble(message.split(":")[3]);
+      targetY=Double.parseDouble(message.split(":")[4]);
+      angle = Math.atan((targetY-myY)/(double)(targetX-myX));
+    }
   }
   private void firePosition(double x, double y){
     if (myX<=x) fire(Math.atan((y-myY)/(double)(x-myX)));
@@ -247,7 +273,6 @@ public class Hadrien1MainA extends Brain {
     isMovingBack=true;
     moveBack();
   }
-
   private String printStateName(){
     if (state == SINK) return listStates.get(listStates.size()-1);
     return listStates.get(state);

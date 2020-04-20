@@ -110,7 +110,8 @@ public class Hadrien1SecondaryA extends Brain {
         enemyX=myX+o.getObjectDistance()*Math.cos(o.getObjectDirection());
         enemyY=myY+o.getObjectDistance()*Math.sin(o.getObjectDirection());
         sendLogMessage("DETECTED("+(int)enemyX+", "+(int)enemyY+") TYPE: "+ o.getObjectType());
-        broadcast(whoAmI+":"+TEAM+":"+FIRE+":"+enemyX+":"+enemyY+":"+OVER);
+        broadcast(whoAmI+":"+TEAM+":"+FALLBACK+":"+enemyX+":"+enemyY+":"+OVER);
+        //broadcast(whoAmI+":"+TEAM+":"+FIRE+":"+enemyX+":"+enemyY+":"+OVER);
         senderOfMsg=true;
       }
       if (o.getObjectDistance()<=100) {
