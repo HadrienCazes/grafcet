@@ -57,6 +57,7 @@ public class Hadrien1MainA extends Brain {
   private boolean freeze;
   private boolean friendlyFire;
   private boolean isMovingBack;
+  private boolean alreadyTowardEnemy;
 
   // TMP VARIABLES
   private double angle;
@@ -90,6 +91,7 @@ public class Hadrien1MainA extends Brain {
     isMovingBack=false;
     fireOrder=false;
     fallbackOrder=false;
+    alreadyTowardEnemy=false;
     fireRythm=0;
     oldAngle=myGetHeading();
     targetX=1500;
@@ -155,6 +157,7 @@ public class Hadrien1MainA extends Brain {
     }
     if (state==TOWARDENEMY && (isSameDirection(getHeading(),angle))){
       state = MOVEBACKTASK;
+      alreadyTowardEnemy=true;
       myMoveBack();
       return;
     }
@@ -253,7 +256,7 @@ public class Hadrien1MainA extends Brain {
       targetY=Double.parseDouble(message.split(":")[4]);
     }
     if (Integer.parseInt(message.split(":")[2])==FALLBACK) {
-      state = TOWARDENEMY;
+      state = (alreadyTowardEnemy)?MOVEBACKTASK:TOWARDENEMY;
       fallbackOrder = true;
       targetX=Double.parseDouble(message.split(":")[3]);
       targetY=Double.parseDouble(message.split(":")[4]);

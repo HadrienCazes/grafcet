@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class Stage6MainA extends Brain {
   //---PARAMETERS---//
   private static final double HEADINGPRECISION = 0.001;
-  private static final double ANGLEPRECISION = 0.1;
+  private static final double ANGLEPRECISION = 0.015;
 
   private static final int ALPHA = 0x1EADDA;
   private static final int BETA = 0x5EC0;

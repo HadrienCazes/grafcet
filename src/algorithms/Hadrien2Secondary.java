@@ -13,8 +13,10 @@ import characteristics.IRadarResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
-public class Hadrien1SecondaryA extends Brain {
+public class Hadrien2Secondary extends Brain {
   //---PARAMETERS---//
   // VARIABLES DE CLASSE
   private static final double ANGLEPRECISION = 0.015;
@@ -38,11 +40,14 @@ public class Hadrien1SecondaryA extends Brain {
   // ADDED STATES
   private static final int TOWARDENEMY = 3;
   private static final int MOVEBACKTASK = 4;
+  private static final int MOVETASKBIS = 5;
   
   // FOR DEBUGGING
   private static ArrayList<String> listStates = new ArrayList<String>(
-    Arrays.asList("TURNLEFTTASK","MOVETASK","TURNRIGHTTASK","TOWARDENEMY","MOVEBACKTASK","SINK")); 
+    Arrays.asList("TURNLEFTTASK","MOVETASK","TURNRIGHTTASK","TOWARDENEMY","MOVEBACKTASK","MOVETASKBIS","SINK")); 
   
+  private Date date;
+  private String timeStamp;
   //---VARIABLES LIES A L'INSTANCE---//
   private int state;
   private double oldAngle;
@@ -53,13 +58,15 @@ public class Hadrien1SecondaryA extends Brain {
   private int whoAmI;
   private boolean senderOfMsg;
 
+
   // TMP VARIABLES
+  //private ArrayList<Double> historicalAngle = new ArrayList<Double>();
   private double angle;
   private double enemyX;
   private double enemyY;
-
+  private int distanceEnemy;
   //---CONSTRUCTORS---//
-  public Hadrien1SecondaryA() { super(); }
+  public Hadrien2Secondary() { super(); }
 
   //---ABSTRACT-METHODS-IMPLEMENTATION---//
   public void activate() {
@@ -109,10 +116,12 @@ public class Hadrien1SecondaryA extends Brain {
       if (o.getObjectType()==IRadarResult.Types.OpponentMainBot || o.getObjectType()==IRadarResult.Types.OpponentSecondaryBot) {
         enemyX=myX+o.getObjectDistance()*Math.cos(o.getObjectDirection());
         enemyY=myY+o.getObjectDistance()*Math.sin(o.getObjectDirection());
+        if (whoAmI==ROCKY) System.out.println(timeLog()+" =====> DETECTED("+(int)enemyX+", "+(int)enemyY+") TYPE: "+ o.getObjectType());
         sendLogMessage("DETECTED("+(int)enemyX+", "+(int)enemyY+") TYPE: "+ o.getObjectType());
         broadcast(whoAmI+":"+TEAM+":"+FALLBACK+":"+enemyX+":"+enemyY+":"+OVER);
         //broadcast(whoAmI+":"+TEAM+":"+FIRE+":"+enemyX+":"+enemyY+":"+OVER);
         senderOfMsg=true;
+        distanceEnemy = (int)o.getObjectDistance();
       }
       if (o.getObjectDistance()<=100) {
         freeze=true;
@@ -120,27 +129,61 @@ public class Hadrien1SecondaryA extends Brain {
     }
     if (freeze) return;
     if (senderOfMsg) {
+      //angle = Math.atan((enemyY-myY)/(double)(enemyX-myX)); bad when enemy detected goes behind the scout...
+      angle = Math.atan2((enemyY-myY), (enemyX-myX));
       state = TOWARDENEMY;
-      angle = Math.atan((enemyY-myY)/(double)(enemyX-myX));
       senderOfMsg = false; // reset for movebacktask
+      if (whoAmI == ROCKY) {
+        System.out.println(timeLog()+" state is : " + printStateName() +
+                                "; angle is : " + angle +
+                                "; distance to enemy is: "+ distanceEnemy +
+                                "; my heading is : "+ getHeading() );
+        //System.out.println("==============>*<=======================");
+      }                                      
     }
 
-    if (state==TOWARDENEMY && (!isSameDirection(getHeading(),angle))) {
+    if (state==TOWARDENEMY && (!isSameDirection(getHeading(),angle))
+    && distanceEnemy <= 500) {
+      //System.out.println(timeLog()+" ---------> TURNING");
+      //System.out.println("==============>*<=======================");
       stepTurn(Parameters.Direction.RIGHT);
       return;
     }
 
-    if (state==TOWARDENEMY && (isSameDirection(getHeading(),angle))) {
+    if (state==TOWARDENEMY && (!isSameDirection(getHeading(),angle))
+    && distanceEnemy > 500) {
+      //if (whoAmI==ROCKY)System.out.println(timeLog()+" ---------> MOVING");
+      myMove();
+      return;
+    }
+
+    if (state==TOWARDENEMY && (isSameDirection(getHeading(),angle)) ) {
       state = MOVEBACKTASK;
       myMoveBack();
       return;
     }
 
-    if (state==MOVEBACKTASK){
+    if (state==MOVEBACKTASK && (distanceEnemy >= 450 && distanceEnemy <= 500)){
       myMoveBack();
       return;
     }
 
+    if (state==MOVEBACKTASK && !(distanceEnemy >= 450 && distanceEnemy <= 500)){
+      state=MOVETASKBIS;
+      myMove();
+      return;
+    }
+
+    if (state==MOVETASKBIS && (distanceEnemy >= 450 && distanceEnemy <= 500)){
+      state = MOVEBACKTASK;
+      myMoveBack();
+      return;
+    }
+
+    if (state==MOVETASKBIS && !(distanceEnemy >= 450 && distanceEnemy <= 500)){
+      myMove();
+      return;
+    }
     //AUTOMATON MOVING NORTH TO EAST FOR UPPER SECONDARY  
     if (state==TURNLEFTTASK && !(isSameDirection(getHeading(),Parameters.NORTH))) {
       stepTurn(Parameters.Direction.LEFT);
@@ -204,5 +247,18 @@ public class Hadrien1SecondaryA extends Brain {
     if (state == SINK) return listStates.get(listStates.size()-1);
     return listStates.get(state);
   }
-    
+  private String timeLog(){
+    date = new java.util.Date();
+    timeStamp = new SimpleDateFormat("HH:mm:ss").format(date);
+    return timeStamp;
+  }
+  private double myGetHeading(){
+    return normalizeRadian(getHeading());
+  }
+  private double normalizeRadian(double angle){
+    double result = angle;
+    while(result<0) result+=2*Math.PI;
+    while(result>=2*Math.PI) result-=2*Math.PI;
+    return result;
+  }
 }
