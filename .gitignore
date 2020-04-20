@@ -2,3 +2,7 @@ beans
 beans/*
 bin
 bin/*
+.classpath
+.project
+META-INF/
+META-INF/*
