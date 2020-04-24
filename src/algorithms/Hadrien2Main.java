@@ -13,6 +13,8 @@ import characteristics.IRadarResult;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class Hadrien2Main extends Brain {
   //---PARAMETERS---//
@@ -43,7 +45,10 @@ public class Hadrien2Main extends Brain {
   private static ArrayList<String> listStates = new ArrayList<String>(
     Arrays.asList("TURNSOUTHTASK","MOVETASK","TURNLEFTTASK","TOWARDENEMY","MOVEBACKTASK","SINK")); 
 
-  //---VARIABLES---//
+  private Date date;
+  private String timeStamp;
+  
+  //---VARIABLES LIES A L'INSTANCE---//
   private int state;
   private double oldAngle;
   private double myX,myY;
@@ -279,5 +284,11 @@ public class Hadrien2Main extends Brain {
   private String printStateName(){
     if (state == SINK) return listStates.get(listStates.size()-1);
     return listStates.get(state);
+  }
+
+  private String timeLog(){
+    date = new java.util.Date();
+    timeStamp = new SimpleDateFormat("HH:mm:ss").format(date);
+    return timeStamp;
   }
 }
