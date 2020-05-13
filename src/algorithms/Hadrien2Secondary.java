@@ -14,7 +14,7 @@ import characteristics.IRadarResult;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Hadrien1SecondaryA extends Brain {
+public class Hadrien2Secondary extends Brain {
   //---PARAMETERS---//
   // VARIABLES DE CLASSE
   private static final double ANGLEPRECISION = 0.015;
@@ -59,7 +59,7 @@ public class Hadrien1SecondaryA extends Brain {
   private double enemyY;
 
   //---CONSTRUCTORS---//
-  public Hadrien1SecondaryA() { super(); }
+  public Hadrien2Secondary() { super(); }
 
   //---ABSTRACT-METHODS-IMPLEMENTATION---//
   public void activate() {

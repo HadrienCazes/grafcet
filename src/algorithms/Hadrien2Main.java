@@ -14,7 +14,7 @@ import characteristics.IRadarResult;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Hadrien1MainA extends Brain {
+public class Hadrien2Main extends Brain {
   //---PARAMETERS---//
   private static final double ANGLEPRECISION = 0.015;
   private static final double FIREANGLEPRECISION = Math.PI/(double)6;
@@ -62,7 +62,7 @@ public class Hadrien1MainA extends Brain {
   private double angle;
 
   //---CONSTRUCTORS---//
-  public Hadrien1MainA() { super(); }
+  public Hadrien2Main() { super(); }
 
   //---ABSTRACT-METHODS-IMPLEMENTATION---//
   public void activate() {
