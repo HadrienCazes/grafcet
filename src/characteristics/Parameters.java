@@ -21,8 +21,10 @@ public class Parameters {
   //-----------------------//
   //---TEAM-A-PARAMETERS---//
   //-----------------------//
-  public static final String teamAMainBotBrainClassName = "algorithms.Hadrien3Main"; //class given by name; is supposed to extends robotsimulator.Brain
-  //public static final String teamAMainBotBrainClassName = "algorithms.Hadrien2Main"; //class given by name; is supposed to extends robotsimulator.Brain
+
+// Mark : Team A Settings
+  public static final String teamAMainBotBrainClassName = "algorithms.GabrielMain"; //class given by name; is supposed to extends robotsimulator.Brain
+  //public static final String teamAMainBotBrainClassName = "algorithms.FifthElementSecondary"; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamAName = "Team Alpha";
   public static final String teamAMainBotAvatar = "avatars/cyclope.png"; //path relative to location of ant build.xml file
   public static final double teamAMainBotRadius = 50, //1 unit = 1mm, body radius
@@ -41,7 +43,7 @@ public class Parameters {
                              teamAMainBot3InitY = 1200, //1 unit = 1mm, coordinate of central point
                              teamAMainBot3InitHeading = EAST; //clockwise trigonometric unit, according to screen pixel coordinate reference
 
-  public static final String teamASecondaryBotBrainClassName = "algorithms.Hadrien3Secondary"; //class given by name; is supposed to extends robotsimulator.Brain
+  public static final String teamASecondaryBotBrainClassName = "algorithms.GabrielSecondary"; //class given by name; is supposed to extends robotsimulator.Brain
   //public static final String teamASecondaryBotBrainClassName = "algorithms.Hadrien2Secondary"; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamASecondaryBotAvatar = "avatars/clumpsy.png"; //path relative to location of ant build.xml file
   public static final double teamASecondaryBotRadius = 50, //1 unit = 1mm, body radius
@@ -60,8 +62,10 @@ public class Parameters {
   //-----------------------//
   //---TEAM-B-PARAMETERS---//
   //-----------------------//
+
+  // Mark : Team B settings
   public static final String teamBName = "Team Beta";
-  public static final String teamBMainBotBrainClassName = "algorithms.BrainCanevas"; //class given by name; is supposed to extends robotsimulator.Brain
+  public static final String teamBMainBotBrainClassName = "algorithms.FifthElementMain"; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamBMainBotAvatar = "avatars/hollowee.png"; //path relative to location of ant build.xml file
   public static final double teamBMainBotRadius = 50, //1 unit = 1mm, body radius
                              teamBMainBotFrontalDetectionRange = 300, //1 unit = 1mm, range of frontal sensor
@@ -79,7 +83,7 @@ public class Parameters {
                              teamBMainBot3InitY = 1200, //1 unit = 1mm, coordinate of central point
                              teamBMainBot3InitHeading = WEST; //clockwise trigonometric unit, according to screen pixel coordinate reference
 
-  public static final String teamBSecondaryBotBrainClassName = "algorithms.BrainCanevas"; //class given by name; is supposed to extends robotsimulator.Brain
+  public static final String teamBSecondaryBotBrainClassName = "algorithms.FifthElementSecondary"; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamBSecondaryBotAvatar = "avatars/fannyExplorer.png"; //path relative to location of ant build.xml file
   public static final double teamBSecondaryBotRadius = 50, //1 unit = 1mm, body radius
                              teamBSecondaryBotFrontalDetectionRange = 500, //1 unit = 1mm, range of frontal sensor

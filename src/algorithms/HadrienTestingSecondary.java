@@ -37,8 +37,11 @@ public class HadrienTestingSecondary extends Brain{
     IFrontSensorResult.Types.TeamMainBot,
     IFrontSensorResult.Types.TeamSecondaryBot,
     IFrontSensorResult.Types.Wreck
-    // ,IFrontSensorResult.Types.WALL
+   ,IFrontSensorResult.Types.WALL
     ));
+
+    private ArrayList<Double> angleArray = new ArrayList<Double>(Arrays.asList
+    (0.0,90.0,180.0,270.0,360.0));
 
     private int state;
     private double oldAngle;
@@ -54,7 +57,7 @@ public class HadrienTestingSecondary extends Brain{
     private boolean isMoving,isMovingBack;
     private double objectiveHugWallX;
     private double objectiveHugWallY;
-    private String directionHugWall;
+    private String directionHugWall, directionFaceEnemy;
 
     private int tmp_run;
     
@@ -88,6 +91,7 @@ public class HadrienTestingSecondary extends Brain{
     private static final int SINK = 0xBADC0DE1;
     private static final int MOVEBACK = 3;
     private static final int HUGWALL = 4;
+    private static final int FACEENEMY = 5;
 
     /*************************
      ******* ADDED STATES****** /
@@ -102,7 +106,7 @@ public class HadrienTestingSecondary extends Brain{
     // Mark : debugging location TEST
 
     private static ArrayList<String> listStates =
-            new ArrayList<String>(Arrays.asList("FACESIDE", "MOVETASK", "ANGLEDROIT","MOVEBACK","HUGWALL","SINK"));
+            new ArrayList<String>(Arrays.asList("FACESIDE", "MOVETASK", "ANGLEDROIT","MOVEBACK","HUGWALL","FACEENEMY","SINK"));
 
     
     private Date date;
@@ -234,6 +238,25 @@ public class HadrienTestingSecondary extends Brain{
         }
     }
 
+    private String directionDegree(int degree){
+        if (degree == 0 || degree == 360)
+            return "E";
+        if (degree == 90)
+            return "N";
+        if (degree == 180)
+            return "W";
+        if (degree == 270)
+            return "S";
+        if (degree > 0 && degree < 90)
+            return "NE";
+        if (degree > 90 && degree < 180)
+            return "NW";
+        if (degree > 180 && degree < 270)
+            return "SW";
+        if (degree > 270 && (degree < 360 || degree < 0))
+            return "SE";
+        return "NONE";
+    }
     private void debugMsg() {
         // DEBUG MESSAGE
         if (whoAmI == ROCKY) {
@@ -304,6 +327,31 @@ public class HadrienTestingSecondary extends Brain{
 
         radarDetection(); // for loop that send msg if enemy is detected or not
         
+        /* if (detectedEnemy){
+            angle = Math.atan2((enemyY - myY), (enemyX - myX));
+            double degree = ((angle > 0)?angle:(2*Math.PI + angle)) * 360 / (2*Math.PI);
+            directionFaceEnemy = directionDegree((int)degree);
+            double moveBackValue = 50;
+            if (whoAmI == SONIC) println(printIdentity() + " degree: "+degree);
+            if  (directionFaceEnemy == "SOUTH"){
+                objectiveHugWallX = 0;
+                objectiveHugWallY = moveBackValue;
+            }             
+            if  (directionFaceEnemy == "WEST"){
+                objectiveHugWallX = -moveBackValue;
+                objectiveHugWallY = 0;
+            }
+            if  (directionFaceEnemy == "NORTH"){
+                objectiveHugWallX = 0;
+                objectiveHugWallY = -moveBackValue;
+            }
+            if  (directionFaceEnemy == "EAST"){
+                objectiveHugWallX = moveBackValue;
+                objectiveHugWallY = 0;
+            }    
+            state = FACEENEMY;
+            detectedEnemy = false;
+        } */
         if (objectClose){
             state = MOVEBACK;
             objectClose = false;
@@ -326,12 +374,27 @@ public class HadrienTestingSecondary extends Brain{
                 return;
             }
     
-            if (state == ANGLEDROIT && isRoughlySameDirection(myGetHeading(), oldAngle - fullturnangle )){
+            if (state == ANGLEDROIT && isRoughlySameDirection(myGetHeading(), oldAngle - fullturnangle )){ //&& !detectedEnemy){
                 // println(printIdentity()+"HERE 2");
                 state = MOVETASK;
                 myMove();
                 return;
             }
+
+            /* if (state == FACEENEMY && !isRoughlySameDirection(myGetHeading(), angle)){
+                // println(printIdentity()+"HERE 3");
+                stepTurn(left);
+                return;
+            }
+
+            if (state == FACEENEMY && isRoughlySameDirection(myGetHeading(), angle)){
+                // println(printIdentity()+"HERE 4");
+                state = MOVEBACK;
+                oldmyX = myX;
+                oldmyY = myY;
+                myMoveBack();
+                return;
+            } */
         }
         if (whoAmI==ROCKY){
             if (state == FACESIDE && !isRoughlySameDirection(myGetHeading(), north)){
@@ -356,7 +419,7 @@ public class HadrienTestingSecondary extends Brain{
             }
         }
 
-        if (state == MOVETASK && (detectFront().getObjectType() == wall)){
+        /* if (state == MOVETASK && (detectFront().getObjectType() == wall)){
             state = HUGWALL;
             double hugDistance = 150;
             angle = myGetHeading();
@@ -406,9 +469,9 @@ public class HadrienTestingSecondary extends Brain{
         }
 
         if (state == HUGWALL && (directionHugWall=="WEST" || directionHugWall=="EAST")){
-            println(printIdentity()+ myX + " : " + (oldmyX+objectiveHugWallX));
+            // println(printIdentity()+ myX + " : " + (oldmyX+objectiveHugWallX));
             if (myX >= (oldmyX + objectiveHugWallX ) && myX <= (oldmyX + objectiveHugWallX + 5)){
-                println("=============================> HERE");
+                // println("=============================> HERE");
                 state = ANGLEDROIT;
                 oldAngle = myGetHeading();
                 stepTurn(left);
@@ -418,7 +481,7 @@ public class HadrienTestingSecondary extends Brain{
                 myMove();
                 return;
             }
-        }
+        } */
 
          if (state == MOVETASK && !toDodge.contains(detectFront().getObjectType())){
             myMove();
@@ -432,15 +495,39 @@ public class HadrienTestingSecondary extends Brain{
             stepTurn(left);
             return;
         }
-
-        if (state == MOVEBACK && distanceObject < 300){
-            myMoveBack();
-            return;
+/* 
+        if (state == MOVETASK && (directionHugWall=="SOUTH" || directionHugWall=="NORTH")){
+            //println(myY + " : " + (oldmyY+objectiveHugWallY));
+            if (myY >= (oldmyY + objectiveHugWallY ) && myY <= (oldmyY + objectiveHugWallY + 5)){
+                //println("=============================> HERE");
+                state = ANGLEDROIT;
+                oldAngle = myGetHeading();
+                stepTurn(left);
+                return;
+            }
+            else{
+                myMove();
+                return;
+            }
         }
 
-        if (state == MOVEBACK && distanceObject >= 300){
-            state = ANGLEDROIT;
-            stepTurn(left);
+        if (state == MOVETASK && (directionHugWall=="WEST" || directionHugWall=="EAST")){
+            // println(printIdentity()+ myX + " : " + (oldmyX+objectiveHugWallX));
+            if (myX >= (oldmyX + objectiveHugWallX ) && myX <= (oldmyX + objectiveHugWallX + 5)){
+                // println("=============================> HERE");
+                state = ANGLEDROIT;
+                oldAngle = myGetHeading();
+                stepTurn(left);
+                return;
+            }
+            else{
+                myMove();
+                return;
+            } 
+        } */
+
+        if (state == MOVEBACK){
+            myMoveBack();
             return;
         }
         
