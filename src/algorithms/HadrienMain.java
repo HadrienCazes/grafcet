@@ -1,269 +1,195 @@
-/*
- * ****************************************************** Simovies - Eurobot 2015 Robomovies
- * Simulator. Copyright (C) 2014 <Binh-Minh.Bui-Xuan@ens-lyon.org>. GPL version>=3
- * <http://www.gnu.org/licenses/>. $Id: algorithms/Stage1.java 2014-10-18 buixuan.
- ******************************************************/
 package algorithms;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 import robotsimulator.Brain;
-import characteristics.Parameters;
+import robotsimulator.RadarResult;
 import characteristics.IFrontSensorResult;
 import characteristics.IRadarResult;
-
-import java.util.ArrayList;
+import characteristics.IRadarResult.Types;
+import characteristics.Parameters;
 
 public class HadrienMain extends Brain {
+
 	// ---PARAMETERS---//
-	private static final double ANGLEPRECISION = 0.01;
-	private static final double FIREANGLEPRECISION = Math.PI / (double) 6;
-
-	private static final int ALPHA = 0x1EADDA;
-	private static final int BETA = 0x5EC0;
-	private static final int GAMMA = 0x333;
-	private static final int TEAM = 0xBADDAD;
-	private static final int UNDEFINED = 0xBADC0DE0;
-
-	private static final int FIRE = 0xB52;
-	private static final int FALLBACK = 0xFA11BAC;
-	private static final int ROGER = 0x0C0C0C0C;
-	private static final int OVER = 0xC00010FF;
-
-	private static final int TURNSOUTHTASK = 1;
-	private static final int MOVETASK = 2;
-	private static final int TURNLEFTTASK = 3;
-	private static final int SINK = 0xBADC0DE1;
+	private static final double HEADINGPRECISION = 0.001;
+	private static final double ANGLEPRECISION = 0.1;
+	private static final int BOTFIRE1 = 1;
+	private static final int BOTFIRE2 = 2;
+	private static final int BOTFIRE3 = 3;
 
 	// ---VARIABLES---//
-	private int state;
-	private double oldAngle;
-	private double myX, myY;
-	private boolean isMoving;
+	private boolean turnTask;
+	private boolean taskMoveAHead;
+	private boolean taskTurnABit;
+	private boolean moveBackTask;
+	private boolean startingStage;
+	private double endTaskDirection;
 	private int whoAmI;
-	private int fireRythm, rythm, counter;
-	private int countDown;
-	private double targetX, targetY;
-	private boolean fireOrder;
-	private boolean freeze;
-	private boolean friendlyFire;
+	private int stepNumberLastFire, stepNumberMoveBack;
+	private int stepNumber;
+	int random = 0;
+	private IRadarResult ennemy;
+	private Random gen;
 
 	// ---CONSTRUCTORS---//
 	public HadrienMain() {
 		super();
+		gen = new Random();
 	}
 
 	// ---ABSTRACT-METHODS-IMPLEMENTATION---//
 	public void activate() {
-		// ODOMETRY CODE
-		whoAmI = GAMMA;
-		for (IRadarResult o : detectRadar())
-			if (isSameDirection(o.getObjectDirection(), Parameters.NORTH))
-				whoAmI = ALPHA;
-		for (IRadarResult o : detectRadar())
-			if (isSameDirection(o.getObjectDirection(), Parameters.SOUTH) && whoAmI != GAMMA)
-				whoAmI = BETA;
-		if (whoAmI == GAMMA) {
-			myX = Parameters.teamAMainBot1InitX;
-			myY = Parameters.teamAMainBot1InitY;
-		} else {
-			myX = Parameters.teamAMainBot2InitX;
-			myY = Parameters.teamAMainBot2InitY;
-		}
-		if (whoAmI == ALPHA) {
-			myX = Parameters.teamAMainBot3InitX;
-			myY = Parameters.teamAMainBot3InitY;
-		}
-
-		// INIT
-		state = TURNSOUTHTASK;
-		isMoving = false;
-		fireOrder = false;
-		fireRythm = 0;
-		oldAngle = myGetHeading();
-		targetX = 1500;
-		targetY = 1000;
-	}
-
-	public void step() {
-		// ODOMETRY CODE
-		if (isMoving) {
-			myX += Parameters.teamAMainBotSpeed * Math.cos(myGetHeading());
-			myY += Parameters.teamAMainBotSpeed * Math.sin(myGetHeading());
-			isMoving = false;
-		}
-		// DEBUG MESSAGE
-		boolean debug = true;
-		if (debug && whoAmI == ALPHA && state != SINK) {
-			sendLogMessage("#ALPHA *thinks* (x,y)= (" + (int) myX + ", " + (int) myY + ") theta= "
-					+ (int) (myGetHeading() * 180 / (double) Math.PI) + "°. #State= " + state);
-		}
-		if (debug && whoAmI == BETA && state != SINK) {
-			sendLogMessage("#BETA *thinks* (x,y)= (" + (int) myX + ", " + (int) myY + ") theta= "
-					+ (int) (myGetHeading() * 180 / (double) Math.PI) + "°. #State= " + state);
-		}
-		if (debug && whoAmI == GAMMA && state != SINK) {
-			sendLogMessage("#GAMMA *thinks* (x,y)= (" + (int) myX + ", " + (int) myY + ") theta= "
-					+ (int) (myGetHeading() * 180 / (double) Math.PI) + "°. #State= " + state);
-		}
-		if (debug && fireOrder)
-			sendLogMessage("Firing enemy!!");
-
-		// COMMUNICATION
-		ArrayList<String> messages = fetchAllMessages();
-		for (String m : messages)
-			if (Integer.parseInt(m.split(":")[1]) == whoAmI
-					|| Integer.parseInt(m.split(":")[1]) == TEAM)
-				process(m);
-
-		// RADAR DETECTION
-		freeze = false;
-		friendlyFire = true;
-		for (IRadarResult o : detectRadar()) {
-			if (o.getObjectType() == IRadarResult.Types.OpponentMainBot
-					|| o.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
-				double enemyX = myX + o.getObjectDistance() * Math.cos(o.getObjectDirection());
-				double enemyY = myY + o.getObjectDistance() * Math.sin(o.getObjectDirection());
-				broadcast(whoAmI + ":" + TEAM + ":" + FIRE + ":" + enemyX + ":" + enemyY + ":"
-						+ OVER);
-			}
-			if (o.getObjectDistance() <= 100
-					&& !isRoughlySameDirection(o.getObjectDirection(), getHeading())
-					&& o.getObjectType() != IRadarResult.Types.BULLET) {
-				freeze = true;
-			}
-			if (o.getObjectType() == IRadarResult.Types.TeamMainBot
-					|| o.getObjectType() == IRadarResult.Types.TeamSecondaryBot
-					|| o.getObjectType() == IRadarResult.Types.Wreck) {
-				if (fireOrder && onTheWay(o.getObjectDirection())) {
-					friendlyFire = false;
+		whoAmI = BOTFIRE1;
+		sendLogMessage("i am BOTFIRE1");
+		ArrayList<IRadarResult> res = detectRadar();
+		for (int i = 0; i < res.size(); i++) {
+			if (isSameDirection(res.get(i).getObjectDirection(), Parameters.NORTH)) {
+				if (isSameDirection(res.get(i + 1).getObjectDirection(), Parameters.SOUTH)) {
+					whoAmI = BOTFIRE2;
+					sendLogMessage("i am BOTFIRE2");
+				} else {
+					whoAmI = BOTFIRE3;
+					sendLogMessage("i am BOTFIRE3");
 				}
 			}
 		}
-		if (freeze)
-			return;
+		stepNumber = 0;
+		stepNumberLastFire = 0;
+		stepNumberMoveBack = 0;
+		startingStage = true;
+		turnTask = false;
+		taskMoveAHead = false;
+		moveBackTask = false;
 
-		// AUTOMATON
-		if (fireOrder)
-			countDown++;
-		if (countDown >= 100)
-			fireOrder = false;
-		if (fireOrder && fireRythm == 0 && friendlyFire) {
-			firePosition(targetX, targetY);
-			fireRythm++;
-			return;
-		}
-		fireRythm++;
-		if (fireRythm >= Parameters.bulletFiringLatency)
-			fireRythm = 0;
-		if (state == TURNSOUTHTASK && !(isSameDirection(getHeading(), Parameters.SOUTH))) {
-			stepTurn(Parameters.Direction.RIGHT);
-			return;
-		}
-		if (state == TURNSOUTHTASK && isSameDirection(getHeading(), Parameters.SOUTH)) {
-			state = MOVETASK;
-			myMove();
-			return;
-		}
-		if (state == MOVETASK && detectFront().getObjectType() != IFrontSensorResult.Types.WALL) {
-			myMove();
-			return;
-		}
-		if (state == MOVETASK && detectFront().getObjectType() == IFrontSensorResult.Types.WALL) {
-			state = TURNLEFTTASK;
-			oldAngle = myGetHeading();
-			stepTurn(Parameters.Direction.LEFT);
-			return;
-		}
-		if (state == TURNLEFTTASK
-				&& !(isSameDirection(getHeading(), oldAngle + Parameters.LEFTTURNFULLANGLE))) {
-			stepTurn(Parameters.Direction.LEFT);
-			return;
-		}
-		if (state == TURNLEFTTASK
-				&& isSameDirection(getHeading(), oldAngle + Parameters.LEFTTURNFULLANGLE)) {
-			state = MOVETASK;
-			myMove();
-			return;
-		}
-
-
-
-		if (state == 0xB52) {
-			if (fireRythm == 0) {
-				firePosition(700, 1500);
-				fireRythm++;
-				return;
-			}
-			fireRythm++;
-			if (fireRythm == Parameters.bulletFiringLatency)
-				fireRythm = 0;
-			if (rythm == 0)
-				stepTurn(Parameters.Direction.LEFT);
-			else
-				myMove();
-			rythm++;
-			if (rythm == 14)
-				rythm = 0;
-			return;
-		}
-
-		if (state == SINK) {
-			myMove();
-			return;
-		}
-		if (true) {
-			return;
-		}
-	}
-
-	private void myMove() {
-		isMoving = true;
 		move();
 	}
 
-	private double myGetHeading() {
-		return normalizeRadian(getHeading());
-	}
+	public void step() {
+		// stepNumber pour compter on es dans quelle "step",
+		// chaque "step" on faire 1 seul action
+		stepNumber++;
 
-	private double normalizeRadian(double angle) {
-		double result = angle;
-		while (result < 0)
-			result += 2 * Math.PI;
-		while (result >= 2 * Math.PI)
-			result -= 2 * Math.PI;
-		return result;
-	}
+		// debut la guerre on "fire()"; jusqu'a step 2500 ou le premiere turn()
+		// on arrete fire()
+		if (stepNumber > 2500) {
+			startingStage = false;
+		}
 
-	private boolean isSameDirection(double dir1, double dir2) {
-		return Math.abs(normalizeRadian(dir1) - normalizeRadian(dir2)) < ANGLEPRECISION;
-	}
+		// PRIORITE: chercher ennemy
+		ArrayList<IRadarResult> detected = detectRadar();
+		ennemy = null;
+		for (IRadarResult o : detected) {
+			if (o.getObjectType() == Types.OpponentMainBot || o.getObjectType() == Types.OpponentSecondaryBot) {
+				if (ennemy != null) {
+					if (o.getObjectDistance() < ennemy.getObjectDistance()) {
+						ennemy = o;
+					}
+				} else {
+					ennemy = o;
+				}
+			}
+		}
 
-	private boolean isRoughlySameDirection(double dir1, double dir2) {
-		return Math.abs(normalizeRadian(dir1) - normalizeRadian(dir2)) < FIREANGLEPRECISION;
-	}
+		// PRIORITE: cas on voir un ennemy, on tester si il y a un Objet au
+		// millieur
+		if (ennemy != null) {
+			boolean hasMiddle = false;
+			for (IRadarResult o : detected) {
+				if (Math.abs(o.getObjectDirection() - ennemy.getObjectDirection()) < Math.PI / 12.0
+						&& o.getObjectDistance() < ennemy.getObjectDistance() && o.getObjectType() != Types.BULLET
+						&& !o.equals(ennemy)) {
+					hasMiddle = true;
+				}
+			}
 
-	private void process(String message) {
-		if (Integer.parseInt(message.split(":")[2]) == FIRE) {
-			fireOrder = true;
-			countDown = 0;
-			targetX = Double.parseDouble(message.split(":")[3]);
-			targetY = Double.parseDouble(message.split(":")[4]);
+			// cas il n'a pas Objet au millieur, on fire() (et move pendant le
+			// temp on ne peut pas fire())
+			if (!hasMiddle && stepNumber > stepNumberLastFire + Parameters.bulletFiringLatency) {
+				fire(ennemy.getObjectDirection());
+				stepNumberLastFire = stepNumber;
+				return;
+			}
+
+			// cas il n'a pas Objet au millieur, on move pendant le temp on ne
+			// peut pas fire()
+			if (!hasMiddle && stepNumber <= stepNumberLastFire + Parameters.bulletFiringLatency) {
+				move();
+				return;
+			}
+
+		}
+
+		// STEP fire() au début: on fire avec le direction un peu random
+		if (stepNumber > 100 && startingStage && stepNumber > stepNumberLastFire + Parameters.bulletFiringLatency) {
+			fire(getHeading() + gen.nextDouble() * Math.PI / 6 - Math.PI / 12);
+			stepNumberLastFire = stepNumber;
+			return;
+		}
+
+		// STEP turn 90 degré, après turn on move
+		if (turnTask) {
+			startingStage = false;
+			if (isHeading(endTaskDirection)) {
+				turnTask = false;
+				move();
+				sendLogMessage("Moving a head. Waza!");
+			} else {
+				stepTurn(Parameters.Direction.LEFT);
+				sendLogMessage("Iceberg at 12 o'clock. Heading to my nine!");
+			}
+			return;
+		}
+
+		// STEP moveBack: (pour ne pas bloquer) 
+		// chaque fois on veut turn, il faut moveBack 25 steps, apres on turn()
+		if (moveBackTask) {
+			if (stepNumber < stepNumberMoveBack + 25) {
+				moveBack();
+				return;
+			} else {
+				moveBackTask = false;
+				turnTask = true;
+				endTaskDirection = getHeading() + Parameters.LEFTTURNFULLANGLE;
+				stepTurn(Parameters.Direction.LEFT);
+				sendLogMessage("Iceberg at 12 o'clock. Heading to my nine!");
+				return;
+			}
+		}
+		
+		// tester si il y a Objet proche, et c'est pas une balle
+		// alors on appelle moveBackTask : moveback (25 step) et apres on turn()
+		for (IRadarResult o : detected) {
+			if (o.getObjectDistance() < 120 && o.getObjectType() != Types.BULLET) {
+				moveBackTask = true;
+				stepNumberMoveBack = stepNumber;
+				moveBack();
+				return;
+			}
+		}
+		
+		//ici: pas ennemy, pas Objet proche,rien devant ou ami devant
+		// alors on move()
+		if (detectFront().getObjectType() == IFrontSensorResult.Types.NOTHING ||
+			detectFront().getObjectType() == IFrontSensorResult.Types.TeamMainBot ||
+			detectFront().getObjectType() == IFrontSensorResult.Types.TeamSecondaryBot) {
+			move(); 
+			sendLogMessage("Moving a head. Waza!");
+			return;
+		} else { //ici: pas ennemy, pas Objet proche, mais il y a quelque chose devant, alors on turn()
+			turnTask = true;
+			endTaskDirection = getHeading() + Parameters.LEFTTURNFULLANGLE;
+			stepTurn(Parameters.Direction.LEFT);
+			sendLogMessage("Iceberg at 12 o'clock. Heading to my nine!");
 		}
 	}
 
-	private void firePosition(double x, double y) {
-		if (myX <= x)
-			fire(Math.atan((y - myY) / (double) (x - myX)));
-		else
-			fire(Math.PI + Math.atan((y - myY) / (double) (x - myX)));
-		return;
+	private boolean isHeading(double dir) {
+		return Math.abs(Math.sin(getHeading() - dir)) < HEADINGPRECISION;
 	}
 
-	private boolean onTheWay(double angle) {
-		if (myX <= targetX)
-			return isRoughlySameDirection(angle,
-					Math.atan((targetY - myY) / (double) (targetX - myX)));
-		else
-			return isRoughlySameDirection(angle,
-					Math.PI + Math.atan((targetY - myY) / (double) (targetX - myX)));
+	private boolean isSameDirection(double dir1, double dir2) {
+		return Math.abs(dir1 - dir2) < ANGLEPRECISION;
 	}
 }
